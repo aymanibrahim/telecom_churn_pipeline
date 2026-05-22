@@ -341,71 +341,9 @@ An optimized, calibrated LightGBM classification machine learning model pipeline
 Target Encoding and SMOTE transformations are isolated strictly inside the pipeline execution to completely prevent data leakage across evaluation sets.
 
 
+# Workflow
 
-## Workflow
-
-```mermaid
-flowchart TD
-
-    subgraph Ingestion
-        A["OpenCellID Towers\nAfrica_towers.csv"]
-        B["Expresso Users\nexpresso.csv"]
-        C["Raw Ingestion Layer"]
-        A --> C
-        B --> C
-    end
-
-    subgraph Processing
-        D["Run Processing Scripts"]
-        E["telecom_churn_100k.csv"]
-        F["telecom_churn.csv - 2M rows"]
-        C --> D
-        D -->|Sample Dataset| E
-        D -->|Full Dataset| F
-    end
-
-    subgraph Modeling
-        G["Exploratory Data Analysis"]
-        H["Train ML Pipelines"]
-        I["churn_model.joblib"]
-        J["churn_predictions.csv"]
-        E --> G
-        F --> G
-        G --> H
-        H --> I
-        H --> J
-    end
-
-    subgraph Serving_Deployment
-        K["Streamlit Dashboard"]
-        M["Flask REST API"]
-        P["Azure Dashboard"]
-        R["Deploy Codebase"]
-        L["Streamlit Cloud"]
-        Q["Azure Cloud"]
-        I --> K
-        J --> K
-        I --> M
-        I --> P
-        J --> P
-        K --> R
-        M --> R
-        P --> R
-        R --> L
-        R --> Q
-    end
-
-    N["New Ingestion Data Arrives"]
-    O["Send Notification Email"]
-    N -->|Airflow Trigger| O
-
-    style Ingestion fill:#f0f7ff,stroke:#0284c7,stroke-width:2px
-    style Processing fill:#f0dfec,stroke:#b71540,stroke-width:2px
-    style Modeling fill:#f0fdf4,stroke:#16a34a,stroke-width:2px
-    style Serving_Deployment fill:#faf5ff,stroke:#9333ea,stroke-width:2px
-    style O fill:#fef08a,stroke:#ca8a04,stroke-width:2px
-```
-
+![](screenshots/mermaid.png)
 
 # Data Pipeline Stages
 
