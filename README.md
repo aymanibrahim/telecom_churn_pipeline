@@ -348,10 +348,9 @@ Target Encoding and SMOTE transformations are isolated strictly inside the pipel
 flowchart TD
 
     subgraph Ingestion
-        A["OpenCellID Towers<br>Africa_towers.csv"]
-        B["Expresso Users<br>expresso.csv"]
+        A["OpenCellID Towers\nAfrica_towers.csv"]
+        B["Expresso Users\nexpresso.csv"]
         C["Raw Ingestion Layer"]
-
         A --> C
         B --> C
     end
@@ -359,19 +358,17 @@ flowchart TD
     subgraph Processing
         D["Run Processing Scripts"]
         E["telecom_churn_100k.csv"]
-        F["telecom_churn.csv (2M rows)"]
-
+        F["telecom_churn.csv - 2M rows"]
         C --> D
         D -->|Sample Dataset| E
         D -->|Full Dataset| F
     end
 
     subgraph Modeling
-        G["Exploratory Data Analysis (EDA)"]
+        G["Exploratory Data Analysis"]
         H["Train ML Pipelines"]
         I["churn_model.joblib"]
         J["churn_predictions.csv"]
-
         E --> G
         F --> G
         G --> H
@@ -386,26 +383,20 @@ flowchart TD
         R["Deploy Codebase"]
         L["Streamlit Cloud"]
         Q["Azure Cloud"]
-
         I --> K
         J --> K
-
         I --> M
-
         I --> P
         J --> P
-
         K --> R
         M --> R
         P --> R
-
         R --> L
         R --> Q
     end
 
-    N["Arrival of New Ingestion Data"]
-    O["Send Notification Mail"]
-
+    N["New Ingestion Data Arrives"]
+    O["Send Notification Email"]
     N -->|Airflow Trigger| O
 
     style Ingestion fill:#f0f7ff,stroke:#0284c7,stroke-width:2px
@@ -414,6 +405,7 @@ flowchart TD
     style Serving_Deployment fill:#faf5ff,stroke:#9333ea,stroke-width:2px
     style O fill:#fef08a,stroke:#ca8a04,stroke-width:2px
 ```
+
 
 # Data Pipeline Stages
 
