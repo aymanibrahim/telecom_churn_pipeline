@@ -176,10 +176,6 @@ A filtered subset of OpenCellID containing Senegal cell tower data with a **90-d
 - Expresso network only: `MNC = 3`
 - 90-day activity window: `2019-04-01` to `2019-07-01`
 
-### Source
-
-Cell Towers Worldwide Dataset (Kaggle)
-
 ### Filtering Rules
 
 The dataset is filtered to:
@@ -349,28 +345,28 @@ Target Encoding and SMOTE transformations are isolated strictly inside the pipel
 ## Workflow
 
 ```mermaid
-graph TD
+flowchart TD
 
-    subgraph Ingestion["1. Ingestion"]
-        A["OpenCellID Towers\nAfrica_towers.csv"]
-        B["Expresso Users\nexpresso.csv"]
+    subgraph Ingestion
+        A["OpenCellID Towers<br>Africa_towers.csv"]
+        B["Expresso Users<br>expresso.csv"]
         C["Raw Ingestion Layer"]
 
-        A -->|Ingest Raw Towers Data| C
-        B -->|Ingest Raw Users Data| C
+        A --> C
+        B --> C
     end
 
-    subgraph Processing["2. Processing"]
+    subgraph Processing
         D["Run Processing Scripts"]
         E["telecom_churn_100k.csv"]
-        F["telecom_churn.csv\n2M rows"]
+        F["telecom_churn.csv (2M rows)"]
 
         C --> D
-        D -->|Generate Sample Dataset| E
-        D -->|Generate Full Dataset| F
+        D -->|Sample Dataset| E
+        D -->|Full Dataset| F
     end
 
-    subgraph Modeling["3. Modeling"]
+    subgraph Modeling
         G["Exploratory Data Analysis (EDA)"]
         H["Train ML Pipelines"]
         I["churn_model.joblib"]
@@ -379,19 +375,17 @@ graph TD
         E --> G
         F --> G
         G --> H
-        H -->|Saves Trained Artifact| I
-        H -->|Outputs Predictions| J
+        H --> I
+        H --> J
     end
 
-    subgraph Serving["4. Serving & Deployment"]
+    subgraph Serving_Deployment
         K["Streamlit Dashboard"]
-        M["Flask REST API Endpoint"]
+        M["Flask REST API"]
         P["Azure Dashboard"]
         R["Deploy Codebase"]
         L["Streamlit Cloud"]
         Q["Azure Cloud"]
-        N["Arrival of New Ingestion Data"]
-        O["Send Notification Mail"]
 
         I --> K
         J --> K
@@ -407,17 +401,19 @@ graph TD
 
         R --> L
         R --> Q
-
-        N -->|Airflow Event Trigger| O
     end
+
+    N["Arrival of New Ingestion Data"]
+    O["Send Notification Mail"]
+
+    N -->|Airflow Trigger| O
 
     style Ingestion fill:#f0f7ff,stroke:#0284c7,stroke-width:2px
     style Processing fill:#f0dfec,stroke:#b71540,stroke-width:2px
     style Modeling fill:#f0fdf4,stroke:#16a34a,stroke-width:2px
-    style Serving fill:#faf5ff,stroke:#9333ea,stroke-width:2px
-    style O fill:#fef08a,stroke:#ca8a04,stroke-width:2.5px,stroke-dasharray: 5 5
+    style Serving_Deployment fill:#faf5ff,stroke:#9333ea,stroke-width:2px
+    style O fill:#fef08a,stroke:#ca8a04,stroke-width:2px
 ```
-
 
 # Data Pipeline Stages
 
@@ -631,3 +627,5 @@ Authentication: set `X-API-Key: <API_KEY>` header.
 5. Omar Saeed Ali
 
 # License
+
+[MIT License](LICENSE.md)
