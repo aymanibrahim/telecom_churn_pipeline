@@ -1,0 +1,48 @@
+{
+  "dag_csv": "outputs\\predictions\\churn_predictions.csv",
+  "baseline_csv": "outputs\\predictions\\churn_predictions_100k.csv",
+  "dag_md5": "49e9bac81ef014e46d5b5cc0d82740c4",
+  "baseline_md5": "d8abfb0cdebf7ac5f4098a2c5e1272d7",
+  "dag_rows": 2154048,
+  "baseline_rows": 100000,
+  "dag_cols": [
+    "actual_churn",
+    "churn_prediction",
+    "churn_probability",
+    "region",
+    "revenue",
+    "risk_segment",
+    "user_id"
+  ],
+  "baseline_cols": [
+    "actual_churn",
+    "churn_prediction",
+    "churn_probability",
+    "region",
+    "revenue",
+    "risk_segment",
+    "user_id"
+  ],
+  "checks": {
+    "row_count_match": false,
+    "column_set_match": true,
+    "user_id_set_match": false,
+    "user_id_overlap_pct": 4.6424,
+    "aligned_rows": 100000,
+    "churn_prediction_agreement": 0.95553,
+    "churn_probability_mean_abs_delta": 0.014835,
+    "risk_segment_dist_dag": {
+      "Low": 0.78576,
+      "Medium": 0.14059,
+      "High": 0.07365
+    },
+    "risk_segment_dist_base": {
+      "Low": 0.8031,
+      "Medium": 0.12951,
+      "High": 0.06739
+    },
+    "risk_segment_max_delta": 0.01734,
+    "risk_segment_warning": "max distribution delta 0.0173 > 0.005"
+  },
+  "pass": false
+}

@@ -1,0 +1,56 @@
+[project]
+name = "telecom-churn-pipeline"
+version = "1.0.0"
+description = "Telecom Customer Churn pipeline (data + EDA + ML + Streamlit + Airflow DAG)"
+readme = "README_PIPELINE.md"
+# Constrain Python version so Streamlit Cloud picks 3.11 instead of the
+# default 3.13 — the trained joblib payload was created against 3.11
+# wheels and some transitive deps (loky, threadpoolctl) lack stable 3.13 wheels.
+requires-python = ">=3.11,<3.13"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+exclude = ["notebooks", "outputs", "datasets", "models", ".airflow", "logs"]
+
+[tool.ruff.lint]
+select = [
+    "E",    # pycodestyle errors
+    "W",    # pycodestyle warnings
+    "F",    # pyflakes
+    "I",    # isort
+    "B",    # flake8-bugbear
+    "UP",   # pyupgrade
+    "SIM",  # flake8-simplify
+    "RUF",  # ruff-specific
+]
+ignore = [
+    "E501",  # line length is enforced by formatter
+    "B008",  # function call in default argument (common with Path objects)
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["B017", "F401"]
+"dags/*" = ["E402"]   # sys.path manipulation must precede imports
+
+[tool.ruff.format]
+quote-style = "double"
+
+[tool.mypy]
+python_version = "3.11"
+ignore_missing_imports = true
+no_strict_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+exclude = ["notebooks", "outputs", "datasets", "models", "logs"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+filterwarnings = [
+    "ignore::DeprecationWarning",
+    "ignore::PendingDeprecationWarning",
+]
+markers = [
+    "slow: long-running integration tests",
+    "requires_airflow: tests that need apache-airflow installed",
+]

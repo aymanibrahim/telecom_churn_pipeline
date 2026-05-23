@@ -1,0 +1,110 @@
+# Airflow + Streamlit dashboard for the Telecom Customer Churn pipeline.
+#
+# Usage:
+#   1) docker compose build
+#   2) docker compose up airflow-init    # one-off DB init
+#   3) docker compose up                 # start scheduler, webserver, streamlit
+#
+# Ports
+#   - Airflow webserver: http://localhost:8080  (login airflow/airflow)
+#   - Streamlit:         http://localhost:8501
+
+x-airflow-common: &airflow-common
+  build:
+    context: .
+    dockerfile: Dockerfile.airflow
+  image: telecom-churn-airflow:latest
+  environment:
+    AIRFLOW__CORE__EXECUTOR: LocalExecutor
+    AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+    AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
+    AIRFLOW__CORE__FERNET_KEY: ""
+    AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: "true"
+    CHURN_BASE_DIR: /opt/airflow/project
+    PYTHONPATH: /opt/airflow/project
+    # Override idempotency on the verification runs so we always rebuild.
+    CHURN_FORCE_REBUILD: "1"
+  volumes:
+    - ./dags:/opt/airflow/dags
+    - ./src:/opt/airflow/project/src
+    - ./scripts:/opt/airflow/project/scripts
+    - ./datasets:/opt/airflow/project/datasets
+    - ./models:/opt/airflow/project/models
+    - ./outputs:/opt/airflow/project/outputs
+    - ./config:/opt/airflow/project/config
+    - ./logs:/opt/airflow/logs
+  user: "${AIRFLOW_UID:-50000}:0"
+  depends_on:
+    postgres:
+      condition: service_healthy
+
+services:
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow
+      POSTGRES_DB: airflow
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "airflow"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  airflow-init:
+    <<: *airflow-common
+    entrypoint: /bin/bash
+    command:
+      - -c
+      - |
+        airflow db migrate
+        airflow users create \
+          --username airflow --password airflow \
+          --firstname Air --lastname Flow \
+          --role Admin --email airflow@example.com || true
+
+  airflow-scheduler:
+    <<: *airflow-common
+    command: scheduler
+    restart: always
+
+  airflow-webserver:
+    <<: *airflow-common
+    command: webserver
+    ports:
+      - "8080:8080"
+    restart: always
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  streamlit:
+    image: telecom-churn-airflow:latest
+    working_dir: /opt/airflow/project
+    command:
+      - streamlit
+      - run
+      - dashboards/churn_dashboard_app.py
+      - --server.port=8501
+      - --server.address=0.0.0.0
+    environment:
+      CHURN_BASE_DIR: /opt/airflow/project
+      PYTHONPATH: /opt/airflow/project
+    volumes:
+      - ./dashboards:/opt/airflow/project/dashboards
+      - ./src:/opt/airflow/project/src
+      - ./models:/opt/airflow/project/models
+      - ./outputs:/opt/airflow/project/outputs
+      - ./config:/opt/airflow/project/config
+    ports:
+      - "8501:8501"
+    restart: unless-stopped
+    depends_on:
+      - airflow-webserver
+
+volumes:
+  postgres-data:

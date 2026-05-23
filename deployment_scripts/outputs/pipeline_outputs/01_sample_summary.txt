@@ -1,0 +1,48 @@
+STAGE 01 — sample_expresso → datasets/expresso/expresso_sample_100k.csv
+Source notebook: notebooks/generate_expresso_sample_100k.ipynb
+Source script:   scripts/01_generate_expresso_sample.py
+
+Shape:    (100000, 19)
+Columns:  19  (user_id, REGION, TENURE, MONTANT, FREQUENCE_RECH, REVENUE...)
+Dtypes:   {dtype('float64'): 12, dtype('O'): 5, dtype('int64'): 2}
+
+Head(5):
+                                    user_id REGION        TENURE  ...               TOP_PACK  \
+0  22322777e909ae0aa1c69e7b1fce40f333187fa6  DAKAR  K > 24 month  ...   Data: 100 F=40MB,24H   
+1  453d2b534a53e30171b3c0c72dc7d56415619d8a    NaN  K > 24 month  ...       Data:490F=1GB,7d   
+2  9e64b12fd171b51378111bbb1f25242e79c7be99    NaN  K > 24 month  ...                    NaN   
+3  369f886e40ef9ec4de23784888d412e5f336cca1  LOUGA  K > 24 month  ...  Data: 200 F=100MB,24H   
+4  3524a53cd138dfe31a2f48c2cc21ed4129df1d10  DAKAR  K > 24 month  ...                    NaN   
+
+   FREQ_TOP_PACK  CHURN  
+0           20.0      0  
+1            2.0      0  
+2            NaN      1  
+3            1.0      0  
+4            NaN      1  
+
+[5 rows x 19 columns]
+
+Null counts (top 10):
+ZONE2            93507
+ZONE1            92091
+TIGO             59631
+DATA_VOLUME      49187
+FREQ_TOP_PACK    41736
+TOP_PACK         41736
+ORANGE           41379
+REGION           39156
+ON_NET           36337
+MONTANT          34941
+dtype: int64
+
+Numeric describe (top 6 columns):
+                  count     mean       std  ...     50%     75%       max
+MONTANT         65059.0  5529.50   7175.85  ...  3000.0  7300.0  226550.0
+FREQUENCE_RECH  65059.0    11.56     13.31  ...     7.0    16.0     132.0
+REVENUE         66484.0  5508.25   7259.06  ...  3000.0  7301.0  233413.0
+ARPU_SEGMENT    66484.0  1836.09   2419.68  ...  1000.0  2434.0   77804.0
+FREQUENCE       66484.0    14.01     14.72  ...     9.0    20.0      91.0
+DATA_VOLUME     50813.0  3385.93  12533.67  ...   256.0  2927.0  926547.0
+
+[6 rows x 8 columns]

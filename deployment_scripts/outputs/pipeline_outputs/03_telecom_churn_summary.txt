@@ -1,0 +1,50 @@
+STAGE 03 — build_telecom_churn → datasets/telecom_churn/telecom_churn_100k.csv
+Source notebook: notebooks/build_telecom_churn_dataset.ipynb
+Source script:   scripts/03_build_telecom_churn.py
+Operation:       spatial-join GADM admin polygons + Expresso REGION + cell-tower KPIs
+Churn rate:      18.8%
+
+Shape:    (100000, 32)
+Columns:  32  (user_id, region, tenure, montant, frequence_rech, revenue...)
+Dtypes:   {dtype('float64'): 25, dtype('O'): 5, dtype('int64'): 2}
+
+Head(5):
+                                    user_id    region        tenure  ...  \
+0  c03cc1ff2f2b1f4a7b2293324f08ca03b291eace   KAOLACK  K > 24 month  ...   
+1  f2302c4b893557d48be7b81f9d9b8b2745c20f0a       NAN  K > 24 month  ...   
+2  0fcafe826b0d25d9141b49dea367dfd2ed290980     DAKAR  K > 24 month  ...   
+3  67552e20d52d9a05b7ed9da51277d659be61307d     KOLDA  K > 24 month  ...   
+4  4f62fb71e1b1a9f7998c4d7159834a710ebbfb77  DIOURBEL  K > 24 month  ...   
+
+   arr_network_quality_score  arr_coverage_index  churn  
+0                   8.279980            484832.0      0  
+1                        NaN                 NaN      0  
+2                  55.106100           2386097.0      0  
+3                   4.777321            103986.0      0  
+4                  11.770244            152870.0      0  
+
+[5 rows x 32 columns]
+
+Null counts (top 10):
+zone2                           93586
+zone1                           92071
+tigo                            59945
+data_volume                     49443
+region_coverage_index           48041
+region_network_quality_score    48041
+region_avg_range                48041
+region_avg_samples              48041
+region_tower_count              48041
+region_avg_signal               48041
+dtype: int64
+
+Numeric describe (top 6 columns):
+                  count     mean       std  ...     50%     75%        max
+montant         64756.0  5526.89   6992.55  ...  3000.0  7350.0   198000.0
+frequence_rech  64756.0    11.55     13.30  ...     7.0    16.0      112.0
+revenue         66204.0  5515.39   7131.59  ...  3000.0  7353.0   221999.0
+arpu_segment    66204.0  1838.47   2377.19  ...  1000.0  2451.0    74000.0
+frequence       66204.0    13.98     14.72  ...     9.0    20.0       91.0
+data_volume     50557.0  3362.01  12999.90  ...   260.0  2879.0  1297464.0
+
+[6 rows x 8 columns]
