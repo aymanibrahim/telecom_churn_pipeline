@@ -1,11 +1,11 @@
-# telecom\_churn
+# telecom_churn
 
-The telecom\_churn dataset is the integration of both the Opencellid dataset and the Expresso dataset to satisfy the requirements of the project for:  
+The telecom_churn dataset is the integration of both the Opencellid dataset and the Expresso dataset to satisfy the requirements of the project for:  
 **… integrates technical and business datasets to predict customer churn …**
 
 ## Overview
 
-The telecom\_churn dataset represents the Expresso telecom customer dataset containing behavioral, transactional, and usage information about mobile subscribers in Senegal and enriched with network infrastructure data, the OpenCellID Senegal dataset, which provides information about mobile tower coverage and network quality across different geographic regions.
+The telecom_churn dataset represents the Expresso telecom customer dataset containing behavioral, transactional, and usage information about mobile subscribers in Senegal and enriched with network infrastructure data, the OpenCellID Senegal dataset, which provides information about mobile tower coverage and network quality across different geographic regions.
 
 The dataset is designed for customer churn prediction, where the goal is to identify customers who are likely to stop using telecom services, such as purchasing airtime or data bundles.
 
@@ -37,23 +37,23 @@ Integration of OpenCellID—cellular network infrastructure (senegal subset) and
 ## Summary of Variables 
 
 \#  Customer identifiers  
-   "user\_id", "region"
+   "user_id", "region"
 
 \#  Customer behaviour  
- "tenure", "montant", "frequence\_rech", "revenue", "arpu\_segment",  
- "frequence", "data\_volume", "on\_net", "orange", "tigo",  
-  "zone1", "zone2", "mrg", "regularity", "top\_pack", "freq\_top\_pack",
+ "tenure", "montant", "frequence_rech", "revenue", "arpu_segment",  
+ "frequence", "data_volume", "on_net", "orange", "tigo",  
+  "zone1", "zone2", "mrg", "regularity", "top_pack", "freq_top_pack",
 
 \#  Region-level network KPIs  (ADM1)  
- "region\_tower\_count", "region\_avg\_range", "region\_avg\_samples", "region\_avg\_signal",  
- "region\_coverage\_index", "region\_signal\_strength\_index", "region\_network\_quality\_score",
+ "region_tower_count", "region_avg_range", "region_avg_samples", "region_avg_signal",  
+ "region_coverage_index", "region_signal_strength_index", "region_network_quality_score",
 
 \#  Department-level network KPIs  (ADM2, aggregated to region)  
- "department\_signal\_strength\_index", "department\_network\_quality\_score",  
-  "department\_coverage\_index",
+ "department_signal_strength_index", "department_network_quality_score",  
+  "department_coverage_index",
 
 \#  Arrondissement-level network KPIs  (ADM3, aggregated to region)  
- "arr\_signal\_strength\_index", "arr\_network\_quality\_score", "arr\_coverage\_index",
+ "arr_signal_strength_index", "arr_network_quality_score", "arr_coverage_index",
 
  \#  Target  
    "churn",
@@ -61,9 +61,9 @@ Integration of OpenCellID—cellular network infrastructure (senegal subset) and
 
 ## Sample records
 ```
-user\_id  region         tenure  montant  frequence\_rech  revenue  arpu\_segment  frequence  data\_volume  on\_net  orange  tigo  zone1  zone2 mrg  regularity                        top\_pack  freq\_top\_pack  region\_tower\_count  region\_avg\_range  region\_avg\_samples  region\_avg\_signal  region\_coverage\_index  region\_signal\_strength\_index  region\_network\_quality\_score  department\_signal\_strength\_index  department\_network\_quality\_score  department\_coverage\_index  arr\_signal\_strength\_index  arr\_network\_quality\_score  arr\_coverage\_index  churn
+user_id  region         tenure  montant  frequence_rech  revenue  arpu_segment  frequence  data_volume  on_net  orange  tigo  zone1  zone2 mrg  regularity                        top_pack  freq_top_pack  region_tower_count  region_avg_range  region_avg_samples  region_avg_signal  region_coverage_index  region_signal_strength_index  region_network_quality_score  department_signal_strength_index  department_network_quality_score  department_coverage_index  arr_signal_strength_index  arr_network_quality_score  arr_coverage_index  churn
 
-0  00000bfd7d50f01092811bc0c8d7b0d6fe7c3596  FATICK   K \> 24 month   4250.0            15.0   4251.0        1417.0       17.0          4.0   388.0    46.0   1.0    1.0    2.0  NO          54  On net 200F=Unlimited \_call24H            8.0                73.0       2626.958904            2.136986                0.0               191768.0                           0.0                     22.541096                               0.0                          7.923556                   191768.0                        0.0                   3.743333            191768.0      0
+0  00000bfd7d50f01092811bc0c8d7b0d6fe7c3596  FATICK   K \> 24 month   4250.0            15.0   4251.0        1417.0       17.0          4.0   388.0    46.0   1.0    1.0    2.0  NO          54  On net 200F=Unlimited _call24H            8.0                73.0       2626.958904            2.136986                0.0               191768.0                           0.0                     22.541096                               0.0                          7.923556                   191768.0                        0.0                   3.743333            191768.0      0
 
 1  00000cb4a5d760de88fecb38e2f71b7bec52e834     NaN  I 18-21 month      NaN             NaN      NaN           NaN        NaN          NaN     NaN     NaN   NaN    NaN    NaN  NO           4                             NaN            NaN                 4.0       1239.000000            1.750000                0.0                 4956.0                           0.0                      1.725000                               0.0                          1.050000                     4956.0                        0.0                   1.050000              4956.0      1
 
@@ -72,20 +72,20 @@ user\_id  region         tenure  montant  frequence\_rech  revenue  arpu\_segmen
 
 ## Variables Description
 
-### **1\. user\_id**
+### **1. user_id**
 
 **Type:** Identifier (String)  
 **Description:**  
 A unique identifier is assigned to each customer.
 
-**2\. region**
+**2. region**
 
 **Type:** Categorical (String)  
 **Description:**  
 Specifies the geographical region in Senegal where the customer is located.  
 Used for regional segmentation and geographic churn analysis.
 
-### **3\. tenure**
+### **3. tenure**
 
 **Type:** Categorical (String)  
 **Description:**  
@@ -98,14 +98,14 @@ Values are grouped into tenure ranges such as:
 
 This variable indicates customer loyalty duration.
 
-### **4\. montant**
+### **4. montant**
 
 **Type:** Numerical (Float)  
 **Description:**  
 Total amount of recharge value (airtime top-ups) made by the customer over the observed period.  
 Represents overall recharge behavior.
 
-### **5\. frequency\_reach**
+### **5. frequency_reach**
 
 **Type:** Numerical (Float)  
 **Description:**  
@@ -114,70 +114,70 @@ Indicates how often the customer tops up airtime.
 
 ### 
 
-### **6\. revenue**
+### **6. revenue**
 
 **Type:** Numerical (Float)  
 **Description:**  
 Total revenue generated from the customer during the observed period.  
 Represents overall monetary contribution.
 
-### **7\. arpu\_segment**
+### **7. arpu_segment**
 
 **Type:** Numerical (Float)  
 **Description:**  
 Average Revenue Per User (ARPU) segment value.  
 Indicates customer revenue category based on spending level.
 
-### **8\. frequence**
+### **8. frequence**
 
 **Type:** Numerical (Float)  
 **Description:**  
 Represents the frequency of customer usage activity.  
 May reflect the number of active usage days or service interactions.
 
-### **9\. data\_volume**
+### **9. data_volume**
 
 **Type:** Numerical (Float)  
 **Description:**  
 Total mobile data consumption volume for the customer.  
 Represents digital engagement and internet usage level.
 
-### **10\. on\_net**
+### **10. on_net**
 
 **Type:** Numerical (Float)  
 **Description:**  
 Number of calls made within the same network (Expresso to Expresso).  
 Indicates internal network communication usage.
 
-### **11\. orange**
+### **11. orange**
 
 **Type:** Numerical (Float)  
 **Description:**  
 Number of calls made to Orange network subscribers.  
 Represents off-network communication behavior.
 
-### **12\. tigo**
+### **12. tigo**
 
 **Type:** Numerical (Float)  
 **Description:**  
 Number of calls made to Tigo network subscribers.  
 Represents inter-operator communication activity.
 
-### **13\. zone1**
+### **13. zone1**
 
 **Type:** Numerical (Float)  
 **Description:**  
 Usage volume or activity within the Zone 1 tariff category.  
 Represents customer usage distribution by pricing zone.
 
-### **14\. zone2**
+### **14. zone2**
 
 **Type:** Numerical (Float)  
 **Description:**  
 Usage volume or activity within the Zone 2 tariff category.  
 Indicates geographic or pricing-based usage classification.
 
-### **15\. mrg**
+### **15. mrg**
 
 **Type:** Categorical (String)  
 **Description:**  
@@ -189,7 +189,7 @@ Common values include:
 
 Represents subscription or bundle activation status.
 
-### **16\. regularity**
+### **16. regularity**
 
 **Type:** Numerical (Integer)  
 **Description:**  
@@ -198,26 +198,26 @@ Higher values typically represent more stable and regular activity.
 
 ### 
 
-### **17\. top\_pack**
+### **17. top_pack**
 
 **Type:** Categorical (String)  
 **Description:**  
 Specifies the main subscribed bundle or top-up package used by the customer.  
 Examples include:
 
-4. On net 200F \= Unlimited calls 24H  
-5. On-net 1000F \= 10 min; 10 d
+4. On net 200F = Unlimited calls 24H  
+5. On-net 1000F = 10 min; 10 d
 
 Represents product preference and subscription behavior.
 
-### **18\. freq\_top\_pack**
+### **18. freq_top_pack**
 
 **Type:** Numerical (Float)  
 **Description:**  
 Number of times the customer activated or purchased the top package.  
 Indicates product usage frequency.
 
-### **19\. region\_tower\_count**
+### **19. region_tower_count**
 
 **Type:** Numerical (Integer)  
 **Description:**  
@@ -225,14 +225,14 @@ Total number of mobile network towers located within the customer's region.
 Represents the **density of telecom infrastructure** available in that area.  
 Higher values generally indicate **better potential network availability and coverage**.
 
-### **20\. region\_avg\_range**
+### **20. region_avg_range**
 
 **Type:** Numerical (Float)  
 **Description:**  
 Average coverage radius of network towers within the region.  
 Indicates the **typical geographic area covered by each tower**, reflecting how far the signal can reach.
 
-### **21\. region\_avg\_samples**
+### **21. region_avg_samples**
 
 **Type:** Numerical (Float)  
 **Description:**  
@@ -241,14 +241,14 @@ Represents the **amount of network observation data available**, which can indic
 
 ### 
 
-### **22\. region\_avg\_signal**
+### **22. region_avg_signal**
 
 **Type:** Numerical (Float)  
 **Description:**  
 Average signal strength recorded from towers within the region.  
 Higher values represent **stronger overall network signal quality** experienced by users.
 
-### **23\. region\_coverage\_index**
+### **23. region_coverage_index**
 
 **Type:** Numerical (Float)  
 **Description:**  
@@ -257,9 +257,9 @@ Typically derived from factors such as tower density, coverage range, and geogra
 
 Calculated for the region as:
 
-coverage\_index \= tower\_count \* avg\_range
+coverage_index = tower_count * avg_range
 
-### **24\. region\_signal\_strength\_index**
+### **24. region_signal_strength_index**
 
 **Type:** Numerical (Float)  
 **Description:**  
@@ -268,9 +268,9 @@ Higher values indicate **stronger and more stable signal conditions**.
 
 Calculated for the region as:
 
-signal\_strength\_index \= avg\_signal / avg\_samples
+signal_strength_index = avg_signal / avg_samples
 
-### **25\. region\_network\_quality\_score**
+### **25. region_network_quality_score**
 
 **Type:** Numerical (Float)  
 **Description:**  
@@ -279,11 +279,11 @@ Combines multiple metrics such as **signal strength, coverage, and network perfo
 
 Calculated for the region as
 
-  network\_quality\_score \=  0.4 \* avg\_signal \+  0.3 \* tower\_count \+  0.3 \* avg\_samples
+  network_quality_score =  0.4 * avg_signal +  0.3 * tower_count +  0.3 * avg_samples
 
 ### 
 
-### **26\. department\_signal\_strength\_index**
+### **26. department_signal_strength_index**
 
 **Type:** Numerical (Float)  
 **Description:**  
@@ -292,9 +292,9 @@ Represents the **average signal performance** experienced by users within that d
 
 Calculated for the department as :
 
-signal\_strength\_index \= avg\_signal / avg\_samples
+signal_strength_index = avg_signal / avg_samples
 
-### **27\. department\_network\_quality\_score**
+### **27. department_network_quality_score**
 
 **Type:** Numerical (Float)  
 **Description:**  
@@ -303,9 +303,9 @@ Derived from indicators such as **signal strength, coverage, and network stabili
 
 Calculated for the department as:
 
- network\_quality\_score \=  0.4 \* avg\_signal \+  0.3 \* tower\_count \+  0.3 \* avg\_samples
+ network_quality_score =  0.4 * avg_signal +  0.3 * tower_count +  0.3 * avg_samples
 
-### **28\. department\_coverage\_index**
+### **28. department_coverage_index**
 
 **Type:** Numerical (Float)  
 **Description:**  
@@ -314,9 +314,9 @@ Higher values indicate **better distribution of telecom infrastructure and wider
 
 Calculated for the department as:
 
-coverage\_index \= tower\_count \* avg\_range
+coverage_index = tower_count * avg_range
 
-### **29\. arr\_signal\_strength\_index**
+### **29. arr_signal_strength_index**
 
 **Type:** Numerical (Float)  
 **Description:**  
@@ -325,11 +325,11 @@ Reflects the **average signal quality** experienced by customers in the district
 
 Calculated for the arrondissement as :
 
-signal\_strength\_index \= avg\_signal / avg\_samples
+signal_strength_index = avg_signal / avg_samples
 
 ### 
 
-### **30\. arr\_network\_quality\_score**
+### **30. arr_network_quality_score**
 
 **Type:** Numerical (Float)  
 **Description:**  
@@ -338,9 +338,9 @@ Combines multiple network indicators to measure the **service performance and re
 
 Calculated for the arrondissement as:
 
- network\_quality\_score \=  0.4 \* avg\_signal \+  0.3 \* tower\_count \+  0.3 \* avg\_samples
+ network_quality_score =  0.4 * avg_signal +  0.3 * tower_count +  0.3 * avg_samples
 
-### **31\. arr\_coverage\_index**
+### **31. arr_coverage_index**
 
 **Type:** Numerical (Float)  
 **Description:**  
@@ -349,9 +349,9 @@ Represents how well the telecom infrastructure serves that district in terms of 
 
 Calculated for the arrondissement as:
 
-coverage\_index \= tower\_count \* avg\_range
+coverage_index = tower_count * avg_range
 
-### **32\. churn**
+### **32. churn**
 
 **Type:** Binary (Integer: 0 or 1\)  
 **Description:**  
@@ -362,11 +362,11 @@ Target variable indicating whether a customer churned.
 
 Churn is defined as a customer becoming inactive and making no transactions for 90 consecutive days.
 
-# telecom\_churn\_100k dataset
+# telecom_churn_100k dataset
 
 ## Overview
 
-The telecom\_churn\_100k dataset represents a **subset** of the Expresso telecom customer dataset sampled with 100.00 rows containing behavioral, transactional, and usage information about mobile subscribers in Senegal and enriched with network infrastructure data, the OpenCellID **Senegal** dataset, which provides information about mobile tower coverage and network quality across different geographic regions.
+The telecom_churn_100k dataset represents a **subset** of the Expresso telecom customer dataset sampled with 100.00 rows containing behavioral, transactional, and usage information about mobile subscribers in Senegal and enriched with network infrastructure data, the OpenCellID **Senegal** dataset, which provides information about mobile tower coverage and network quality across different geographic regions.
 
 ## Data source
 
