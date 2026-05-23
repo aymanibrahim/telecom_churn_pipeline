@@ -340,10 +340,10 @@ Target Encoding and SMOTE transformations are isolated strictly inside the pipel
 
 | Service | URL | Status |
 |---|---|---|
-| **Streamlit dashboard** (Azure) | https://telechurn-streamlit.thankfulsand-f5821563.eastus.azurecontainerapps.io | ✅ |
-| **Flask REST API** (Azure) | https://telechurn-flask.thankfulsand-f5821563.eastus.azurecontainerapps.io | ✅ |
-| **Swagger UI** (interactive API) | https://telechurn-flask.thankfulsand-f5821563.eastus.azurecontainerapps.io/ | ✅ |
-| **GitHub repo** (public, MIT) | https://github.com/Mohamedhassanofficial/Telecom-Churn | ✅ |
+| **Streamlit dashboard**  | https://telechurn-streamlit.thankfulsand-f5821563.eastus.azurecontainerapps.io | ✅ |
+| **Flask REST API** | https://telechurn-flask.thankfulsand-f5821563.eastus.azurecontainerapps.io | ✅ |
+
+
 
 ### Documentation 
 
