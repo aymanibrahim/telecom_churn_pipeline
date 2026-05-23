@@ -83,37 +83,26 @@ The project aims to:
 
 ```text
 telecom_churn_pipeline/
-├── dags/
-│   └── telecom_churn_dag.py          ← Airflow DAG (single source of truth)
-│
-├── src/
-│   ├── ingestion/
-│   │   └── ingestion.py              ← Stage 1: ingest_data()
-│   ├── processing/
-│   │   └── processing.py             ← Stage 2: transform_data()
-│   ├── modeling/
-│   │   └── modeling.py               ← Stage 3: run_model_inference()
-│   ├── serving/
-│   │   └── serving.py                ← Stage 4: serve_predictions()
-│   ├── api/
-│   │   └── app.py                    ← Flask REST API
-│   └── logger.py                     ← Centralized logging
-│
-├── config/
-│   └── config.py                     ← All paths, constants, hyperparameters
-│
-├── data/
-│   ├── raw/                          ← Place source CSVs here
-│   └── processed/                    ← Generated intermediate datasets
-│
-├── models/                           ← Versioned .joblib files + symlink
-├── outputs/                          ← Predictions CSV, metrics, reports
-├── logs/                             ← Rotating pipeline log file
-│
-├── docker-compose.yml                ← Airflow + PostgreSQL + Flask API
-├── Dockerfile.api                    ← Flask API container image
+├── dags/churn_pipeline.py            # Airflow TaskFlow DAG
+├── scripts/                          # CLI entrypoints (00–06)
+├── src/                              # Shared library (14 modules)
+│   ├── paths.py                      # CHURN_BASE_DIR-driven paths
+│   ├── config.py                     # YAML-loaded constants
+│   ├── logging_setup.py              # Centralised logging
+│   ├── validation.py                 # Pandera-style schema checks
+│   ├── idempotency.py                # @skip_if_fresh decorator
+│   ├── sampling.py / geo.py / ...
+│   └── modeling.py / inference.py
+├── tests/                            # Pytest (29 unit tests)
+├── dashboards/churn_dashboard_app.py # Streamlit + Senegal map
+├── notebooks/                        # Original 15 reference notebooks
+├── config/config.yaml                # Hyperparameters + thresholds
+├── docker-compose.yaml               # Airflow + Postgres + Streamlit
+├── Dockerfile.airflow
+├── pyproject.toml                    # ruff + mypy + pytest config
+├── Makefile                          # make smoke / test / docker-up
 ├── requirements.txt
-└── .env.example                      ← Copy to .env and fill in credentials
+└── .github/workflows/ci.yml          # GitHub Actions
 ```
 
 # Datasets 
@@ -345,197 +334,142 @@ Target Encoding and SMOTE transformations are isolated strictly inside the pipel
 
 ![](screenshots/mermaid.png)
 
-# Data Pipeline Stages
+# Deployment
 
-## Stage 1 — `ingest_data()`
+## Live deployments 
 
-| Function | Description |
-|---|---|
-| `validate_raw_inputs()` | Schema-checks all source files before heavy compute |
-| `ingest_opencellid()` | Dask load → Senegal/Expresso filter → 90-day window → CSV |
-| `ingest_expresso_sample()` | Chunk-sampling 100 k rows with `random_state=42` |
-| `download_gadm_geopackage()` | Cached GADM download with retry logic |
-| `send_notification_email()` | Email  notification on ingestion success |
-
-## Stage 2 — `transform_data()`
-
-| Function | Description |
-|---|---|
-| `load_gadm_boundaries()` | Loads ADM1/2/3 layers from GeoPackage |
-| `build_tower_geodataframe()` | Converts tower lat/lon to Shapely Point GeoDataFrame |
-| `spatial_join_towers()` | Point-in-polygon join at each admin level |
-| `compute_network_kpis()` | Aggregates 7 KPIs per zone (coverage, signal, quality) |
-| `compute_all_regional_kpis()` | Runs joins at all 3 levels + roll-ups to Region |
-| `merge_network_kpis_dask()` | Broadcast-merge 3 small KPI tables into 2M Dask DF |
-| `validate_processed_output()` | Checks row counts, churn distribution, schema |
-
-## Stage 3 — `run_model_inference()`
-
-| Function | Description |
-|---|---|
-| `load_training_data()` | Loads `telecom_churn_100k.csv` |
-| `engineer_features()` | 7-step feature engineering (notebook-identical) |
-| `define_feature_sets()` | Identifies num/cat columns |
-| `split_data()` | Stratified 70/15/15 split |
-| `build_pipeline()` | Leak-free ImbPipeline (impute→encode→scale→SMOTE→LGB) |
-| `run_hyperparameter_search()` | RandomizedSearchCV (20 iter, 5-fold, ROC-AUC) |
-| `calibrate_model()` | Isotonic CalibratedClassifierCV on validation set |
-| `tune_threshold()` | F1-optimal threshold sweep on validation set |
-| `evaluate_model()` | Full metrics report + business KPIs on test set |
-| `segment_customers()` | Risk × Value matrix segmentation |
-
-## Stage 4 — `serve_predictions()`
-
-| Function | Description |
-|---|---|
-| `load_predictions()` | Loads modeling-stage output CSV |
-| `load_model_metadata()` | Reads versioned `.joblib` payload |
-| `validate_predictions()` | Enforces output schema contract |
-| `enrich_predictions()` | Adds human-readable labels + model version |
-| `save_predictions()` | Final `churn_predictions.csv` |
-| `save_high_risk_customers()` | CRM export of High-risk segment |
-| `export_model_info()` | `model_info.json` for Flask API |
-| `produce_executive_summary()` | Plain-text business report |
-
-
-# Prediction Parity Guarantee
-
-Every step that affects model output is preserved verbatim from the notebooks:
-
-| Notebook logic | Production implementation |
-|---|---|
-| Column drop list (ZERO_VAR, COLLINEAR, SPARSE, ID) | `config.py → ZERO_VAR_COLS` etc. |
-| Feature engineering order (flags → ratios → log → engagement → tenure) | `engineer_features()` — same order |
-| `random_state=42` throughout | `config.py → SEED = 42` |
-| Stratified 70/15/15 split | `split_data()` — identical split fractions |
-| TargetEncoder `smoothing=10, min_samples_leaf=5` | `build_pipeline()` |
-| SMOTE `k_neighbors=5` inside ImbPipeline | `build_pipeline()` |
-| LightGBM `class_weight="balanced"` | `build_pipeline()` |
-| RandomizedSearchCV `n_iter=20, cv=5, scoring=roc_auc` | `run_hyperparameter_search()` |
-| Isotonic calibration on val set | `calibrate_model()` |
-| Threshold sweep 0.10 → 0.90, step 0.01 | `tune_threshold()` |
-| Risk tiers: High≥0.7, Medium≥0.4, Low<0.4 | `config.py → RISK_TIERS` |
-
-
-# Quick Start
-
-## Prerequisites
-
-- Docker ≥ 24 and Docker Compose V2
-- 16 GB RAM recommended (Dask processes 2 M rows)
-- `Africa_towers.csv` and `expresso.csv` in `data/raw/`
-
-### Steps
-
-```bash
-# 1. Clone and configure
-cp .env.example .env
-# Edit .env — set SMTP credentials, API_KEY
-
-# 2. Initialise Airflow DB (run once)
-docker compose --profile init up airflow-init
-
-# 3. Start all services
-docker compose up -d
-
-# 4. Open Airflow UI
-open http://localhost:8080
-# Login: airflow / airflow
-
-# 5. Enable and trigger the DAG
-# In the UI: toggle "telecom_ai_churn_pipeline" ON → click ▶ to trigger
-
-# 6. Monitor task logs in real time
-docker compose logs -f airflow-scheduler
-
-# 7. Check the Flask API
-curl http://localhost:5000/health
-curl -X POST http://localhost:5000/predict \
-     -H "Content-Type: application/json" \
-     -H "X-API-Key: your-secure-api-key" \
-     -d '{"revenue": 5000, "regularity": 25, "frequence": 12}'
-```
-
-### Run a single stage locally (development)
-
-```bash
-# Install dependencies in a virtual environment
-python -m venv venv && source venv/bin/activate
-pip install -r requirements.txt
-
-export TELECOM_BASE_DIR=$(pwd)
-export TELECOM_PROJECT_ROOT=$(pwd)
-
-python -m src.ingestion.ingestion     # Stage 1
-python -m src.processing.processing   # Stage 2
-python -m src.modeling.modeling       # Stage 3
-python -m src.serving.serving         # Stage 4
-```
-
-
-## Airflow DAG Reference
-
-**DAG ID**: `telecom_ai_churn_pipeline`
-
-| Task ID | Operator | Callable | Timeout |
-|---|---|---|---|
-| `ingest_data` | PythonOperator | `ingest_data()` | default |
-| `send_notification_email` | PythonOperator | `send_notification_email()` | default |
-| `transform_data` | PythonOperator | `transform_data()` | 2 hours |
-| `run_model_inference` | PythonOperator | `run_model_inference()` | 3 hours |
-| `serve_predictions` | PythonOperator | `serve_predictions()` | default |
-| `pipeline_complete_email` | EmailOperator | *(built-in)* | default |
-
-**Dependency graph**:
-```
-ingest_data ──► transform_data ──► run_model_inference ──► serve_predictions ──► pipeline_complete_email
-    └──────────────────────────────────────────────────────► send_notification_email
-```
-
-
-# Flask REST API Reference
-
-Base URL: `http://localhost:5000`
-
-| Method | Endpoint | Auth | Description |
-|---|---|---|---|
-| GET | `/health` | No | Liveness probe |
-| POST | `/predict` | Yes | Single customer inference |
-| POST | `/predict/batch` | Yes | Batch inference (≤10,000 records) |
-| GET | `/model/info` | Yes | Model metadata + metrics |
-| POST | `/model/reload` | Yes | Hot-reload model after DAG run |
-| GET | `/predictions` | Yes | Latest batch predictions summary |
-
-Authentication: set `X-API-Key: <API_KEY>` header.
-
-
-## Environment Variables
-
-| Variable | Default | Description |
+| Service | URL | Status |
 |---|---|---|
-| `TELECOM_BASE_DIR` | `/opt/airflow` | Project root on Airflow worker |
-| `NOTIFY_EMAIL_TO` | `team@example.com` | Alert recipients |
-| `SMTP_HOST` | `smtp.example.com` | SMTP server hostname |
-| `SMTP_PORT` | `587` | SMTP port |
-| `SMTP_USER` | *(empty)* | SMTP username |
-| `SMTP_PASSWORD` | *(empty)* | SMTP password |
-| `TELECOM_DAG_SCHEDULE` | `@daily` | Cron/preset schedule |
-| `API_KEY` | *(empty)* | Flask API key (empty = auth off) |
-| `AZURE_STORAGE_CONNECTION_STRING` | *(empty)* | Azure Blob Storage connection |
+| **Streamlit dashboard** (Azure) | https://telechurn-streamlit.thankfulsand-f5821563.eastus.azurecontainerapps.io | ✅ |
+| **Flask REST API** (Azure) | https://telechurn-flask.thankfulsand-f5821563.eastus.azurecontainerapps.io | ✅ |
+| **Swagger UI** (interactive API) | https://telechurn-flask.thankfulsand-f5821563.eastus.azurecontainerapps.io/ | ✅ |
+| **GitHub repo** (public, MIT) | https://github.com/Mohamedhassanofficial/Telecom-Churn | ✅ |
 
+### Documentation 
 
-## Azure VM Deployment
+- **[`docs/API.md`](docs/API.md)** — full REST API reference (endpoints, schemas, curl + Python examples, field reference)
+- **[`docs/REVIEWERS_GUIDE.md`](docs/REVIEWERS_GUIDE.md)** — 60-second / 5-minute / 2-minute reproduction recipes
+- **[`docs/PIPELINE_OUTPUTS.md`](docs/PIPELINE_OUTPUTS.md)** — stage-by-stage outputs of the data pipeline (every script's artefact, with charts)
+- **[`docs/SCREENSHOTS.md`](docs/SCREENSHOTS.md)** — dashboard + ML evaluation visuals
 
-1. **Create VM** — Ubuntu 22.04, min 8 vCPU / 16 GB RAM.
-2. **Open NSG ports** — 8080 (Airflow), 5000 (Flask), 8501 (Streamlit).
-3. **Install Docker** — `curl -fsSL https://get.docker.com | sh`.
-4. **Upload source files** — copy `Africa_towers.csv` and `expresso.csv` to `data/raw/`.
-5. **Configure `.env`** — set SMTP and Azure credentials.
-6. **Initialise and start** — follow the Quick Start steps above.
-7. **Model reload signal** — the DAG's `serve_predictions` task calls
-   `POST /model/reload` on the Flask API via Airflow's `SimpleHttpOperator`
-   (add to the DAG after `t_serve` if needed).
+### One-liner sanity check
 
+```bash
+curl -X POST https://telechurn-flask.thankfulsand-f5821563.eastus.azurecontainerapps.io/predict \
+  -H "Content-Type: application/json" \
+  -d '{"revenue":50,"regularity":15,"frequence":10,"data_volume":1000,"region":"DAKAR","montant":100,"frequence_rech":5,"top_pack":"Pack 5"}'
+# {"churn_probability":0.1765,"churn_prediction":0,"risk_segment":"Low","threshold":0.29}
+```
+
+## Pipeline overview
+
+```
+sample_expresso ─┐
+                 ├─→ build_telecom_churn_100k ─┐
+build_opencellid ┤                              ├─→ collect_telecom_paths ─→ run_eda ─→ train_model ─→ predict
+                 └─→ build_telecom_churn_full ─┘
+```
+
+The DAG produces **both scales** in one run: `build_telecom_churn_100k` feeds the 100k Expresso sample → `telecom_churn_100k.csv` (~100k rows); `build_telecom_churn_full` feeds the raw 2 M Expresso → `telecom_churn.csv` (~2.15 M rows). Downstream tasks pick the scale via the `USE_FULL_DATASET` Airflow Variable.
+
+| # | Stage | Source notebook → Python module |
+|---|---|---|
+| 1 | Sample Expresso (2M → 100k stratified) | `notebooks/generate_expresso_sample_100k.ipynb` → `src/sampling.py` |
+| 2 | Build OpenCellID Senegal (90-day window, MCC=608, MNC=3) | `notebooks/build_opencellid_senegal_90d_dataset.ipynb` → `src/geo.py` |
+| 3 | Spatial join + KPI aggregation (region / department / arrondissement) | `notebooks/build_telecom_churn_dataset.ipynb` → `src/geo.py` + `src/network_kpis.py` |
+| 4 | Headless EDA report (PNGs + JSON summary) | `notebooks/Telecom Customer Churn - EDA - Project Team A.ipynb` → `src/eda.py` |
+| 5 | Train LightGBM (Calibrated + SMOTE + SHAP) | `notebooks/Telecom Customer Churn - Training, Inference & Evaluation - Project Team A.ipynb` → `src/modeling.py` |
+| 6 | Batch inference + risk segmentation | same notebook → `src/inference.py` |
+
+## Quickstart
+
+### Docker (recommended)
+
+```bash
+git clone https://github.com/Mohamedhassanofficial/Telecom-Churn.git
+cd Telecom-Churn
+cp .env.example .env
+
+# Download raw data (Kaggle CLI required for expresso.csv + Africa_towers.csv)
+python scripts/00_download_raw.py
+
+docker compose build
+docker compose up airflow-init
+docker compose up
+```
+
+Open:
+- **Airflow UI**: http://localhost:8080  (login: `airflow` / `airflow`)
+- **Streamlit dashboard**: http://localhost:8501
+
+Trigger the DAG `telecom_churn_production_pipeline` and watch the 6 tasks succeed; the dashboard auto-refreshes when `outputs/predictions/churn_predictions.csv` is rewritten.
+
+### Local Windows / WSL
+
+```bash
+pip install -r requirements-pipeline.txt
+pip install -r dashboards/requirements-dashboards.txt
+
+set CHURN_BASE_DIR=C:\path\to\Telecom-Churn          # Windows
+# export CHURN_BASE_DIR=$(pwd)                        # macOS / Linux
+
+python scripts/05_train_model.py --no-shap
+python scripts/06_predict.py
+streamlit run dashboards/churn_dashboard_app.py
+```
+
+## Engineering features
+
+| Feature | Why it matters |
+|---|---|
+| **TaskFlow API DAG** | Type-hinted Python, automatic XCom, fewer footguns than PythonOperator |
+| **Schema validation between stages** | Catches data drift the moment it appears |
+| **Idempotent task runs** | `@skip_if_fresh` makes daily runs cheap; bypass with `CHURN_FORCE_REBUILD=1` |
+| **Calibrated LightGBM + SMOTE + Target encoding** | Pipeline avoids leakage and produces well-calibrated probabilities |
+| **SHAP explainability** | Per-feature contribution plot saved with every training run |
+| **MLflow tracking** | Auto-enables when `MLFLOW_TRACKING_URI` is set; otherwise no-op |
+| **Streamlit Senegal map** | Choropleth of churn risk per ADM1 region |
+| **Pytest suite + GitHub Actions CI** | ruff + mypy + 29 unit tests on every push |
+| **Docker Compose for one-command stand-up** | Postgres + Airflow scheduler/webserver + Streamlit sidecar |
+
+## Configuration
+
+All non-path constants live in `config/config.yaml`:
+
+```yaml
+opencellid:
+  mcc: 608          # Senegal
+  mnc: 3            # Expresso
+  window_days: 90
+
+model:
+  default_threshold: 0.42
+  calibration_method: isotonic
+  smote_k_neighbors: 5
+```
+
+Paths are resolved from `CHURN_BASE_DIR` (env var) by `src/paths.py` — same code runs on Windows, Linux, and inside the Docker Airflow container.
+
+## Verification
+
+```bash
+make smoke       # compile + import smoke + lightweight unit tests
+make test        # full pytest suite
+make docker-up   # spin up Airflow + Streamlit
+```
+
+CI runs the same checks plus a DAG parse on every push:
+
+```yaml
+# .github/workflows/ci.yml
+- ruff check src scripts dags tests
+- mypy src --ignore-missing-imports
+- python -m compileall -q src scripts dags tests
+- pytest --cov=src --cov-report=term-missing
+- airflow dags list-import-errors
+```
+
+### [Extended setup notes](docs/README_PIPELINE.md)
 
 # Future Enhancements
 
