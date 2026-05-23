@@ -1,3 +1,0 @@
-scale,accuracy,precision,recall,f1,roc_auc,avg_precision,threshold,n_rows_train,notes
-100k,0.8539,0.5720,0.8613,0.6875,0.9297,0.6939,0.2900,100000,Baseline used in 100k bit-identical parity check
-full,0.8706,0.6254,0.7738,0.6917,0.9297,0.6986,0.3500,2154048,"Full Expresso 2M, same code path"
